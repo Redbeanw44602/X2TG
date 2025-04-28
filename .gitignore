@@ -1,0 +1,8 @@
+state.json
+
+# Python
+.venv
+__pycache__
+
+# VSCode
+.vscode
