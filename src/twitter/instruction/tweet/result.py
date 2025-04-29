@@ -12,7 +12,7 @@ def parse(data: dict) -> Tweet:
 
     # is reposted?
     if 'retweeted_status_result' in legacy_data:
-        status = legacy_data['retweeted_status_result']  # todo: separate to reader
+        status = legacy_data['retweeted_status_result']  # TODO: separate it.
         username = status['result']['core']['user_results']['result']['legacy']['screen_name']
         rest_id = status['result']['rest_id']
         thread.set_reposted(username, rest_id)
@@ -29,7 +29,9 @@ def parse(data: dict) -> Tweet:
         medias = rich_entities['media']
         for media in medias:
             full_text = full_text.replace(media['url'], '')
-            thread.add_photo(media['media_url_https'])
+            thread.photos.append(media['media_url_https'])
 
-    thread.set_text(full_text.strip())
+    thread.set_date(legacy_data['created_at'])
+    thread.rest_id = int(data['rest_id'])
+    thread.text = full_text.strip()
     return thread

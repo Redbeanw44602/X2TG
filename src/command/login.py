@@ -1,26 +1,32 @@
-from playwright.sync_api import sync_playwright, Playwright, TimeoutError as PlaywrightTimeoutError
+from playwright.async_api import (
+    async_playwright,
+    Playwright,
+    TimeoutError as PlaywrightTimeoutError,
+)
+
+from twitter.config import MAIN_URL
 
 
-def _run(playwright: Playwright, state_path: str):
-    browser = playwright.chromium.launch(headless=False)
-    context = browser.new_context()
+async def _run(playwright: Playwright, browser_context: str):
+    browser = await playwright.chromium.launch(headless=False)
+    context = await browser.new_context()
     print('login context has been created, please complete the login within 5 minutes.')
 
     # login page
-    page = context.new_page()
-    page.goto('https://x.com/')
+    page = await context.new_page()
+    await page.goto(MAIN_URL)
     try:
-        page.get_by_test_id('SideNav_AccountSwitcher_Button').wait_for(timeout=5 * 60 * 1000)
+        await page.get_by_test_id('SideNav_AccountSwitcher_Button').wait_for(timeout=5 * 60 * 1000)
     except PlaywrightTimeoutError:
         print('login timeout.')
     else:
         print('login successfully.')
-        context.storage_state(path=state_path)
+        await context.storage_state(path=browser_context)
 
-    context.close()
-    browser.close()
+    await context.close()
+    await browser.close()
 
 
-def process(state_path: str):
-    with sync_playwright() as playwright:
-        _run(playwright, state_path)
+async def process(**kwargs):
+    async with async_playwright() as playwright:
+        await _run(playwright, **kwargs)
