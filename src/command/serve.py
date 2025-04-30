@@ -68,6 +68,9 @@ async def _console_input():
         match cmd:
             case 'q' | 'quit' | 'exit':
                 Exited = True
+            case 'test telegram':
+                await _bot.send_message(chat_id=_chat_id, text='Hello world!\n\n#X2TG_TEST')
+                print('test message sent.')
             case _:
                 print('Please type "quit" to exit.')
 
@@ -154,6 +157,7 @@ async def process(**kwargs):
 
     _bot = Bot(token=kwargs['bot_token'])
     _chat_id = kwargs['chat_id']
+    assert _chat_id < 0
 
     kwargs.pop('bot_token')
     kwargs.pop('chat_id')
