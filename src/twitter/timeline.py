@@ -1,4 +1,3 @@
-import asyncio
 from datetime import datetime
 
 from twitter.tweet import Tweet
@@ -33,10 +32,6 @@ class Timeline:
 
     def enable_new_thread_event_since(self, date: datetime):
         self._latest_post_date = date
-
-    async def merge(self, tweets: list[Tweet]):
-        for tweet in tweets:
-            await self.insert(tweet)
 
     async def insert(self, tweet: Tweet):
         if tweet in self._all_threads:

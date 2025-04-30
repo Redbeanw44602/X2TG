@@ -12,14 +12,19 @@ def setup():
 
     subparser = parser.add_subparsers(dest='command')
 
-    login = subparser.add_parser('login')
-    login.add_argument('--browser-context', type=str, required=True)
+    glparser = argparse.ArgumentParser(add_help=False)
+    glparser.add_argument('--browser-context', type=str, required=True)
+    glparser.add_argument(
+        '--browser-kind', type=str, required=True, choices=['chromium', 'firefox', 'webkit']
+    )
+    glparser.add_argument('--headless', action='store_true')
 
-    serve = subparser.add_parser('serve')
-    serve.add_argument('--browser-context', type=str, required=True)
+    login = subparser.add_parser('login', parents=[glparser])
+
+    serve = subparser.add_parser('serve', parents=[glparser])
     serve.add_argument('--username', type=str, required=True)
     serve.add_argument('--bot-token', type=str, required=True)
-    serve.add_argument('--chat-id', type=str, required=True)
+    serve.add_argument('--chat-id', type=int, required=True)
 
     return parser
 

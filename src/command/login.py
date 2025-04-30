@@ -7,8 +7,10 @@ from playwright.async_api import (
 from twitter.config import MAIN_URL
 
 
-async def _run(playwright: Playwright, browser_context: str):
-    browser = await playwright.chromium.launch(headless=False)
+async def _run(playwright: Playwright, browser_context: str, browser_kind: str, headless: bool):
+    headless = False  # force headless mode off.
+
+    browser = await getattr(playwright, browser_kind).launch(headless=headless)
     context = await browser.new_context()
     print('login context has been created, please complete the login within 5 minutes.')
 
