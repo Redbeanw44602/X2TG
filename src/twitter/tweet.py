@@ -22,7 +22,7 @@ class Tweet:
         self.rest_id = 0
 
     def __eq__(self, value):
-        return isinstance(self, value) and self.rest_id == value.rest_id
+        return isinstance(self, Tweet) and self.rest_id == value.rest_id
 
     def __hash__(self):
         return self.rest_id

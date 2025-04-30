@@ -1,20 +1,27 @@
 import re
 import asyncio
 import json
-import datetime
+from datetime import datetime, timezone
 import random
 
 from playwright.async_api import async_playwright, Playwright, Request, Page
+from telegram import Bot, InputMediaPhoto
 
 from twitter.instruction.parser import InstructionParser
+from twitter.tweet import Tweet
 from twitter.timeline import Timeline
 from twitter.config import MAIN_URL
 
 
 _timeline: Timeline = None
 
+_bot: Bot = None
+_chat_id = None
 
-async def _run(playwright: Playwright, browser_context: str, username: str):
+
+async def _run(
+    playwright: Playwright, browser_context: str, username: str, bot_token: str, chat_id: str
+):
     browser = await playwright.chromium.launch(headless=False)
     context = await browser.new_context(storage_state=browser_context)
     print('context has been restored.')
@@ -84,19 +91,35 @@ async def _on_request(req: Request):
 
     tweets = InstructionParser(instructions).parse()
 
-    _timeline.merge(tweets)
+    await _timeline.merge(tweets)
 
 
-def _on_new_thread():
-    pass
+async def _on_new_thread(tweet: Tweet):
+    if tweet.reposted_href:
+        await _bot.send_message(chat_id=_chat_id, text=tweet.reposted_href)
+        return
+    if not tweet.photos:
+        await _bot.send_message(chat_id=_chat_id, text=tweet.text)
+    elif len(tweet.photos) == 1:
+        await _bot.send_photo(chat_id=_chat_id, photo=tweet.photos[0], caption=tweet.text)
+    elif len(tweet.photos) > 1:
+        media = []
+        for photo in tweet.photos:
+            media.append(InputMediaPhoto(media=photo))
+        await _bot.send_media_group(chat_id=_chat_id, media=media, caption=tweet.text)
 
 
 async def process(**kwargs):
     global _timeline
+    global _bot
+    global _chat_id
 
     _timeline = Timeline()
     _timeline.on('new_thread', _on_new_thread)
-    _timeline.enable_new_thread_event_since(datetime.now())
+    _timeline.enable_new_thread_event_since(datetime.now(timezone.utc))
+
+    _bot = Bot(token=kwargs['bot_token'])
+    _chat_id = kwargs['chat_id']
 
     async with async_playwright() as playwright:
         await _run(playwright, **kwargs)

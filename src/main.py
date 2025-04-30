@@ -18,6 +18,8 @@ def setup():
     serve = subparser.add_parser('serve')
     serve.add_argument('--browser-context', type=str, required=True)
     serve.add_argument('--username', type=str, required=True)
+    serve.add_argument('--bot-token', type=str, required=True)
+    serve.add_argument('--chat-id', type=str, required=True)
 
     return parser
 
