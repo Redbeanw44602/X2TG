@@ -91,8 +91,11 @@ async def _on_request(req: Request):
     instructions = raw_data['data']['user']['result']['timeline']['timeline']['instructions']
 
     tweets = InstructionParser(instructions).parse()
+    tweets.reverse()
 
-    await _timeline.merge(tweets)
+    for tweet in tweets:
+        if not tweet.pinned:
+            await _timeline.insert(tweet)
 
 
 async def _on_new_thread(tweet: Tweet):
