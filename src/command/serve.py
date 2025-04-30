@@ -1,11 +1,12 @@
 import re
 import asyncio
 import json
-from datetime import datetime, timezone
 import random
+from datetime import datetime, timezone
 
 from playwright.async_api import async_playwright, Playwright, Request, Page
 from telegram import Bot, InputMediaPhoto
+from telegram.constants import ParseMode
 
 from twitter.instruction.parser import InstructionParser
 from twitter.tweet import Tweet
@@ -16,7 +17,7 @@ from twitter.config import MAIN_URL
 _timeline: Timeline = None
 
 _bot: Bot = None
-_chat_id = None
+_chat_id: str = None
 
 
 async def _run(
@@ -75,9 +76,9 @@ async def _scroll_to(page: Page, position: int):
 async def _fake_browsing(page: Page):
     while True:
         await _scroll_to(page, random.randint(2000, 4000))
-        await asyncio.sleep(10)
-        await _scroll_to(page, 0)
-        await asyncio.sleep(5 * 60)
+        await asyncio.sleep(random.randint(8, 15))
+        await _scroll_to(page, random.randint(0, 100))
+        await asyncio.sleep(random.randint(2, 8) * 60)
 
 
 async def _on_request(req: Request):
@@ -96,17 +97,26 @@ async def _on_request(req: Request):
 
 async def _on_new_thread(tweet: Tweet):
     if tweet.reposted_href:
-        await _bot.send_message(chat_id=_chat_id, text=tweet.reposted_href)
+        await _bot.send_message(
+            chat_id=_chat_id, parse_mode=ParseMode.MARKDOWN, text=tweet.reposted_href
+        )
         return
     if not tweet.photos:
-        await _bot.send_message(chat_id=_chat_id, text=tweet.text)
+        await _bot.send_message(chat_id=_chat_id, parse_mode=ParseMode.MARKDOWN, text=tweet.text)
     elif len(tweet.photos) == 1:
-        await _bot.send_photo(chat_id=_chat_id, photo=tweet.photos[0], caption=tweet.text)
+        await _bot.send_photo(
+            chat_id=_chat_id,
+            parse_mode=ParseMode.MARKDOWN,
+            photo=tweet.photos[0],
+            caption=tweet.text,
+        )
     elif len(tweet.photos) > 1:
         media = []
         for photo in tweet.photos:
             media.append(InputMediaPhoto(media=photo))
-        await _bot.send_media_group(chat_id=_chat_id, media=media, caption=tweet.text)
+        await _bot.send_media_group(
+            chat_id=_chat_id, parse_mode=ParseMode.MARKDOWN, media=media, caption=tweet.text
+        )
 
 
 async def process(**kwargs):
