@@ -1,10 +1,10 @@
 import asyncio
 import argparse
 
-import command.login as LoginCommand
-import command.serve as ServeCommand
+import app.login as LoginApp
+import app.serve as ServeApp
 
-_handler = {'login': LoginCommand, 'serve': ServeCommand}
+_handler = {'login': LoginApp, 'serve': ServeApp}
 
 
 def setup():
